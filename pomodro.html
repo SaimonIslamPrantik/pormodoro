@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Flow - Material 3 Timer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
+        
+        :root {
+            /* Forest Green Light theme colors */
+            --md-sys-color-primary: #2E7D32;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #A5D6A7;
+            --md-sys-color-on-primary-container: #1B5E20;
+            --md-sys-color-secondary: #4A635B;
+            --md-sys-color-secondary-container: #C8E6C9;
+            --md-sys-color-tertiary: #388E3C;
+            --md-sys-color-tertiary-container: #81C784;
+            --md-sys-color-surface: #F1F8E9;
+            --md-sys-color-surface-variant: #E0E7DB;
+            --md-sys-color-background: #F9FBF7;
+            --md-sys-color-on-background: #1A1C19;
+            --md-sys-color-on-surface: #1A1C19;
+            --md-sys-color-on-surface-variant: #43483F;
+            --md-sys-color-outline: #73796E;
+            --md-sys-color-outline-variant: #C3C8BB;
+            --md-sys-color-shadow: #000000;
+            --md-sys-color-scrim: #000000;
+            --md-sys-color-inverse-surface: #2F312D;
+            --md-sys-color-inverse-on-surface: #F0F2EC;
+            --md-sys-color-error: #BA1A1A;
+        }
+
+        [data-theme="dark"] {
+            /* Forest Green Dark theme colors */
+            --md-sys-color-primary: #66BB6A;
+            --md-sys-color-on-primary: #0D3A0F;
+            --md-sys-color-primary-container: #1B5E20;
+            --md-sys-color-on-primary-container: #A5D6A7;
+            --md-sys-color-secondary: #81C784;
+            --md-sys-color-secondary-container: #2E4A30;
+            --md-sys-color-tertiary: #4CAF50;
+            --md-sys-color-tertiary-container: #2E7D32;
+            --md-sys-color-surface: #121512;
+            --md-sys-color-surface-variant: #43483F;
+            --md-sys-color-background: #0A0C0A;
+            --md-sys-color-on-background: #E2E3DD;
+            --md-sys-color-on-surface: #E2E3DD;
+            --md-sys-color-on-surface-variant: #C3C8BB;
+            --md-sys-color-outline: #8D9387;
+            --md-sys-color-outline-variant: #43483F;
+            --md-sys-color-shadow: #000000;
+            --md-sys-color-scrim: #000000;
+            --md-sys-color-inverse-surface: #E2E3DD;
+            --md-sys-color-inverse-on-surface: #2F312D;
+            --md-sys-color-error: #F2B8B5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-background);
+            min-height: 100vh;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Settings Sidebar */
+        .settings-sidebar {
+            position: fixed;
+            top: 0;
+            left: -400px;
+            width: 400px;
+            height: 100vh;
+            background: var(--md-sys-color-surface);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .settings-sidebar.open {
+            left: 0;
+        }
+
+        .settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1999;
+        }
+
+        .settings-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--md-sys-color-outline-variant);
+        }
+
+        .settings-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--md-sys-color-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .close-settings {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .close-settings:hover {
+            transform: rotate(90deg) scale(1.1);
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+        }
+
+        .settings-cog {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .settings-cog:hover {
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 4rem;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--md-sys-color-primary);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-tertiary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Fullscreen Toggle */
+        .fullscreen-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--md-sys-color-surface-variant);
+            color: var(--md-sys-color-on-surface);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .fullscreen-toggle:hover {
+            background: var(--md-sys-color-primary-container);
+            transform: scale(1.1);
+        }
+
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: var(--md-sys-color-surface-variant);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #FDB813, #FFEB3B);
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        [data-theme="dark"] .theme-toggle-slider {
+            left: 32px;
+            background: linear-gradient(135deg, #7B68EE, #9370DB);
+        }
+
+        .theme-icon {
+            font-size: 12px;
+            color: white;
+        }
+
+        /* Fullscreen Mode */
+        .fullscreen-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--md-sys-color-background);
+            z-index: 3000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-container.active {
+            display: flex;
+        }
+
+        .fullscreen-mode {
+            font-size: 2rem;
+            color: var(--md-sys-color-primary);
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .fullscreen-timer {
+            font-size: 12rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .exit-fullscreen {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--md-sys-color-surface-variant);
+            color: var(--md-sys-color-on-surface);
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .exit-fullscreen:hover {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            transform: scale(1.05);
+        }
+
+        /* Timer Section */
+        .timer-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.8s ease-out;
+            padding: 1rem 0;
+        }
+
+        .timer-card {
+            background: var(--md-sys-color-surface);
+            border-radius: 28px;
+            padding: 3rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .timer-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--md-sys-color-primary-container) 0%, transparent 70%);
+            opacity: 0.3;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        .timer-modes {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 0.875rem 1.25rem;
+            border: none;
+            background: var(--md-sys-color-surface-variant);
+            color: var(--md-sys-color-on-surface-variant);
+            border-radius: 100px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-btn.active {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: var(--md-sys-color-outline-variant);
+            transform: translateY(-2px);
+        }
+
+        .timer-display {
+            font-size: 7rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 3rem 0;
+            background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+            animation: pulse 2s ease-in-out infinite;
+            line-height: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .timer-progress {
+            width: 100%;
+            height: 10px;
+            background: var(--md-sys-color-outline-variant);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timer-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--md-sys-color-primary), var(--md-sys-color-tertiary));
+            border-radius: 100px;
+            transition: width 1s linear;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .control-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 100px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn i {
+            font-size: 1.1rem;
+        }
+
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .control-btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .primary-btn {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+        }
+
+        .secondary-btn {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .secondary-btn:hover {
+            background: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-primary);
+            transform: translateY(-2px);
+        }
+
+        /* Settings Panel Content */
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+
+        .settings-section-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .setting-label {
+            font-size: 0.9rem;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .setting-input {
+            padding: 0.75rem;
+            border: 2px solid var(--md-sys-color-outline-variant);
+            border-radius: 12px;
+            background: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-surface);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            transform: scale(1.02);
+        }
+
+        /* Sound Settings */
+        .sound-settings {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: var(--md-sys-color-primary-container);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .sound-label {
+            font-weight: 500;
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .sound-toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: var(--md-sys-color-outline-variant);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sound-toggle-switch.active {
+            background: var(--md-sys-color-primary);
+        }
+
+        .sound-toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .sound-toggle-switch.active::after {
+            left: 26px;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            margin-top: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            animation: fadeIn 1s ease-out 0.4s both;
+        }
+
+        .stat-card {
+            background: var(--md-sys-color-surface);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--md-sys-color-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-tertiary));
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Motivational Quote */
+        .quote-section {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--md-sys-color-primary-container), var(--md-sys-color-tertiary-container));
+            border-radius: 16px;
+            text-align: center;
+            animation: slideUp 0.8s ease-out 0.2s both;
+        }
+
+        .quote-text {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--md-sys-color-on-primary-container);
+            margin-bottom: 0.5rem;
+        }
+
+        .quote-author {
+            font-size: 0.9rem;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Sound Toggle */
+        .sound-toggle {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--md-sys-color-surface);
+            border: 2px solid var(--md-sys-color-outline-variant);
+            color: var(--md-sys-color-on-surface);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sound-toggle:hover {
+            transform: scale(1.1);
+            background: var(--md-sys-color-primary-container);
+        }
+
+        .sound-toggle.muted {
+            color: var(--md-sys-color-outline);
+        }
+
+        /* Particles Background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--md-sys-color-primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            to {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Task List */
+        .task-list {
+            margin-top: 1.5rem;
+            background: var(--md-sys-color-surface);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .task-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .add-task-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .add-task-btn:hover {
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .task-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--md-sys-color-outline-variant);
+            border-radius: 12px;
+            background: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .task-input.show {
+            display: block;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--md-sys-color-surface-variant);
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .task-item:hover {
+            transform: translateX(4px);
+        }
+
+        .task-checkbox {
+            min-width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--md-sys-color-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .task-checkbox.checked {
+            background: var(--md-sys-color-primary);
+        }
+
+        .task-checkbox.checked::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: white;
+            font-size: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .task-text {
+            flex: 1;
+            color: var(--md-sys-color-on-surface);
+            transition: all 0.3s ease;
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .task-delete {
+            color: var(--md-sys-color-error);
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .task-item:hover .task-delete {
+            opacity: 1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 1rem;
+            }
+
+            .timer-display {
+                font-size: 5rem;
+            }
+            
+            .fullscreen-timer {
+                font-size: 6rem;
+            }
+            
+            .timer-card {
+                padding: 2rem;
+            }
+            
+            .settings-sidebar {
+                width: 100%;
+                left: -100%;
+            }
+            
+            .stats-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="particles" id="particles"></div>
+    
+    <!-- Settings Sidebar -->
+    <div class="settings-sidebar" id="settingsSidebar">
+        <div class="settings-header">
+            <h2 class="settings-title">
+                <i class="fas fa-cog"></i>
+                Settings
+            </h2>
+            <button class="close-settings" id="closeSettings">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <h3 class="settings-section-title">
+                <i class="fas fa-clock"></i>
+                Timer Durations
+            </h3>
+            <div class="setting-item">
+                <label class="setting-label">Pomodoro (minutes)</label>
+                <input type="number" class="setting-input" id="pomodoroTime" value="25" min="1" max="60">
+            </div>
+            <div class="setting-item">
+                <label class="setting-label">Short Break (minutes)</label>
+                <input type="number" class="setting-input" id="shortBreakTime" value="5" min="1" max="30">
+            </div>
+            <div class="setting-item">
+                <label class="setting-label">Long Break (minutes)</label>
+                <input type="number" class="setting-input" id="longBreakTime" value="15" min="1" max="60">
+            </div>
+            <div class="setting-item">
+                <label class="setting-label">Sessions until Long Break</label>
+                <input type="number" class="setting-input" id="sessionsUntilLong" value="4" min="2" max="10">
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3 class="settings-section-title">
+                <i class="fas fa-volume-up"></i>
+                Sound Settings
+            </h3>
+            <div class="sound-settings">
+                <span class="sound-label">Enable Sounds</span>
+                <div class="sound-toggle-switch active" id="soundToggleSwitch"></div>
+            </div>
+            <div style="padding: 1rem; background: var(--md-sys-color-surface-variant); border-radius: 12px; margin-top: 1rem;">
+                <p style="font-size: 0.9rem; color: var(--md-sys-color-on-surface-variant);">
+                    <i class="fas fa-info-circle"></i>
+                    Sounds are loaded from:
+                </p>
+                <ul style="margin-top: 0.5rem; margin-left: 1.5rem; font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">
+                    <li>Start: button.mp3</li>
+                    <li>Finish: buzz.mp3</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-overlay" id="settingsOverlay"></div>
+
+    <!-- Settings Cog Button -->
+    <button class="settings-cog" id="settingsCog">
+        <i class="fas fa-cog"></i>
+    </button>
+
+    <!-- Fullscreen Container -->
+    <div class="fullscreen-container" id="fullscreenContainer">
+        <button class="exit-fullscreen" id="exitFullscreen">
+            <i class="fas fa-compress"></i>
+            Exit Fullscreen
+        </button>
+        <div class="fullscreen-mode" id="fullscreenMode">POMODORO</div>
+        <div class="fullscreen-timer" id="fullscreenTimer">25:00</div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-tree"></i>
+                </div>
+                <span>Pormodoro</span>
+            </div>
+            <div class="header-controls">
+                <button class="fullscreen-toggle" id="fullscreenToggle">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <div class="theme-toggle" id="themeToggle">
+                    <div class="theme-toggle-slider">
+                        <i class="fas fa-sun theme-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="timer-section">
+            <div class="timer-card">
+                <div class="timer-modes">
+                    <button class="mode-btn active" data-mode="pomodoro">Pomodoro</button>
+                    <button class="mode-btn" data-mode="short">Short Break</button>
+                    <button class="mode-btn" data-mode="long">Long Break</button>
+                </div>
+
+                <div class="timer-display" id="timerDisplay">25:00</div>
+
+                <div class="timer-progress">
+                    <div class="timer-progress-bar" id="progressBar" style="width: 100%"></div>
+                </div>
+
+                <div class="control-buttons">
+                    <button class="control-btn primary-btn" id="startBtn">
+                        <i class="fas fa-play"></i>
+                        <span>Start</span>
+                    </button>
+                    <button class="control-btn secondary-btn" id="resetBtn">
+                        <i class="fas fa-redo"></i>
+                        <span>Reset</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="quote-section">
+                <div class="quote-text" id="quoteText">"The secret of getting ahead is getting started."</div>
+                <div class="quote-author">- Mark Twain</div>
+            </div>
+
+            <div class="task-list">
+                <div class="task-header">
+                    <h3 class="task-title">
+                        <i class="fas fa-tasks"></i>
+                        Tasks
+                    </h3>
+                    <button class="add-task-btn" id="addTaskBtn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <input type="text" class="task-input" id="taskInput" placeholder="Enter a new task...">
+                <div id="tasksList"></div>
+            </div>
+
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-value" id="todayPomodoros">0</div>
+                    <div class="stat-label">Today's Pomodoros</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTime">0h</div>
+                    <div class="stat-label">Total Focus Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="currentStreak">0</div>
+                    <div class="stat-label">Current Streak</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completedTasks">0</div>
+                    <div class="stat-label">Tasks Done</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button class="sound-toggle" id="soundToggle">
+        <i class="fas fa-volume-up"></i>
+    </button>
+    <button class="fab" id="fab">
+        <i class="fas fa-sparkles"></i>
+    </button>
+
+    <!-- Audio Elements -->
+    <audio id="startSound" src="button.mp3" preload="auto"></audio>
+    <audio id="finishSound" src="buzz.mp3" preload="auto"></audio>
+
+    <script>
+        // Timer State
+        let timerState = {
+            mode: 'pomodoro',
+            timeLeft: 25 * 60,
+            totalTime: 25 * 60,
+            isRunning: false,
+            interval: null,
+            pomodoroCount: 0,  // Track completed pomodoros in current cycle
+            soundEnabled: true,
+            tasks: [],
+            stats: {
+                todayPomodoros: 0,
+                totalFocusTime: 0,
+                currentStreak: 0,
+                completedTasks: 0
+            },
+            autoStartBreaks: true,  // Automatically start breaks
+            autoStartPomodoros: true  // Automatically start pomodoros after breaks
+        };
+
+        // Timer Settings
+        const settings = {
+            pomodoro: 25,
+            short: 5,
+            long: 15,
+            sessionsUntilLong: 4
+        };
+
+        // Motivational Quotes
+        const quotes = [
+            { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+            { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+            { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
+            { text: "Success is the sum of small efforts repeated day in and day out.", author: "Robert Collier" },
+            { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+            { text: "Productivity is never an accident. It's always the result of intelligent planning and focused effort.", author: "Paul J. Meyer" },
+            { text: "Your time is limited, don't waste it living someone else's life.", author: "Steve Jobs" },
+            { text: "The future depends on what you do today.", author: "Mahatma Gandhi" }
+        ];
+
+        // DOM Elements
+        const timerDisplay = document.getElementById('timerDisplay');
+        const progressBar = document.getElementById('progressBar');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const soundToggle = document.getElementById('soundToggle');
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const quoteText = document.getElementById('quoteText');
+        const quoteAuthor = document.querySelector('.quote-author');
+        const particles = document.getElementById('particles');
+        const settingsCog = document.getElementById('settingsCog');
+        const settingsSidebar = document.getElementById('settingsSidebar');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const closeSettings = document.getElementById('closeSettings');
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        const fullscreenContainer = document.getElementById('fullscreenContainer');
+        const exitFullscreen = document.getElementById('exitFullscreen');
+        const fullscreenTimer = document.getElementById('fullscreenTimer');
+        const fullscreenMode = document.getElementById('fullscreenMode');
+        const soundToggleSwitch = document.getElementById('soundToggleSwitch');
+        const startSound = document.getElementById('startSound');
+        const finishSound = document.getElementById('finishSound');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTimer();
+            initializeTheme();
+            initializeParticles();
+            initializeStats();
+            initializeTasks();
+            initializeSettings();
+            initializeSounds();
+            loadSettings();
+            updateQuote();
+        });
+
+        // Settings Panel
+        function initializeSettings() {
+            settingsCog.addEventListener('click', openSettings);
+            closeSettings.addEventListener('click', closeSettingsPanel);
+            settingsOverlay.addEventListener('click', closeSettingsPanel);
+        }
+
+        function openSettings() {
+            settingsSidebar.classList.add('open');
+            settingsOverlay.classList.add('active');
+        }
+
+        function closeSettingsPanel() {
+            settingsSidebar.classList.remove('open');
+            settingsOverlay.classList.remove('active');
+        }
+
+        // Fullscreen Functions
+        fullscreenToggle.addEventListener('click', enterFullscreen);
+        exitFullscreen.addEventListener('click', exitFullscreenMode);
+
+        function enterFullscreen() {
+            fullscreenContainer.classList.add('active');
+            updateFullscreenDisplay();
+        }
+
+        function exitFullscreenMode() {
+            fullscreenContainer.classList.remove('active');
+        }
+
+        function updateFullscreenDisplay() {
+            fullscreenTimer.textContent = timerDisplay.textContent;
+            fullscreenMode.textContent = timerState.mode.toUpperCase().replace('_', ' ');
+        }
+
+        // Sound Functions
+        function initializeSounds() {
+            soundToggleSwitch.addEventListener('click', () => {
+                timerState.soundEnabled = !timerState.soundEnabled;
+                soundToggleSwitch.classList.toggle('active', timerState.soundEnabled);
+                updateSoundToggleIcon();
+            });
+
+            soundToggle.addEventListener('click', () => {
+                timerState.soundEnabled = !timerState.soundEnabled;
+                soundToggleSwitch.classList.toggle('active', timerState.soundEnabled);
+                soundToggle.classList.toggle('muted', !timerState.soundEnabled);
+                updateSoundToggleIcon();
+            });
+        }
+
+        function updateSoundToggleIcon() {
+            const icon = soundToggle.querySelector('i');
+            if (timerState.soundEnabled) {
+                icon.className = 'fas fa-volume-up';
+                soundToggle.classList.remove('muted');
+            } else {
+                icon.className = 'fas fa-volume-mute';
+                soundToggle.classList.add('muted');
+            }
+        }
+
+        function playStartSound() {
+            if (timerState.soundEnabled) {
+                startSound.play().catch(e => {
+                    console.log('Could not play start sound. Make sure button.mp3 is in the root directory.');
+                });
+            }
+        }
+
+        function playFinishSound() {
+            if (timerState.soundEnabled) {
+                finishSound.play().catch(e => {
+                    console.log('Could not play finish sound. Make sure buzz.mp3 is in the root directory.');
+                });
+            }
+        }
+
+        // Timer Functions
+        function initializeTimer() {
+            updateDisplay();
+            updateProgress();
+            
+            startBtn.addEventListener('click', toggleTimer);
+            resetBtn.addEventListener('click', resetTimer);
+            
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => switchMode(btn.dataset.mode, false));
+            });
+        }
+
+        function toggleTimer() {
+            if (timerState.isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            timerState.isRunning = true;
+            startBtn.innerHTML = '<i class="fas fa-pause"></i><span>Pause</span>';
+            playStartSound();
+            
+            timerState.interval = setInterval(() => {
+                timerState.timeLeft--;
+                updateDisplay();
+                updateProgress();
+                updateFullscreenDisplay();
+                
+                if (timerState.timeLeft <= 0) {
+                    completeSession();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            timerState.isRunning = false;
+            startBtn.innerHTML = '<i class="fas fa-play"></i><span>Start</span>';
+            clearInterval(timerState.interval);
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerState.timeLeft = timerState.totalTime;
+            updateDisplay();
+            updateProgress();
+            updateFullscreenDisplay();
+        }
+
+        function completeSession() {
+            pauseTimer();
+            playFinishSound();
+            
+            if (timerState.mode === 'pomodoro') {
+                // Completed a pomodoro session
+                timerState.pomodoroCount++;
+                timerState.stats.todayPomodoros++;
+                timerState.stats.totalFocusTime += settings.pomodoro;
+                timerState.stats.currentStreak++;
+                updateStats();
+                
+                // Determine next break type
+                if (timerState.pomodoroCount % settings.sessionsUntilLong === 0) {
+                    // Time for long break
+                    showNotification('Great work! Time for a long break! You\'ve completed ' + timerState.pomodoroCount + ' pomodoros!');
+                    switchMode('long', true);
+                } else {
+                    // Time for short break
+                    showNotification('Good job! Take a short break! (' + timerState.pomodoroCount + '/' + settings.sessionsUntilLong + ' until long break)');
+                    switchMode('short', true);
+                }
+                
+                // Auto-start break if enabled
+                if (timerState.autoStartBreaks) {
+                    setTimeout(() => {
+                        startTimer();
+                    }, 2000); // 2 second delay before auto-starting
+                }
+            } else {
+                // Completed a break session
+                showNotification('Break\'s over! Let\'s get back to work!');
+                switchMode('pomodoro', true);
+                
+                // Auto-start pomodoro if enabled
+                if (timerState.autoStartPomodoros) {
+                    setTimeout(() => {
+                        startTimer();
+                    }, 2000); // 2 second delay before auto-starting
+                }
+            }
+            
+            updateQuote();
+        }
+
+        function switchMode(mode, isAutoSwitch = false) {
+            timerState.mode = mode;
+            
+            // Update UI to show active mode
+            modeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            
+            // Set timer duration based on mode
+            switch(mode) {
+                case 'pomodoro':
+                    timerState.totalTime = settings.pomodoro * 60;
+                    break;
+                case 'short':
+                    timerState.totalTime = settings.short * 60;
+                    break;
+                case 'long':
+                    timerState.totalTime = settings.long * 60;
+                    break;
+            }
+            
+            // Reset timer to new duration
+            timerState.timeLeft = timerState.totalTime;
+            updateDisplay();
+            updateProgress();
+            updateFullscreenDisplay();
+            
+            // Don't pause if this is an automatic switch
+            if (!isAutoSwitch && timerState.isRunning) {
+                pauseTimer();
+            }
+        }
+
+        function updateDisplay() {
+            const minutes = Math.floor(timerState.timeLeft / 60);
+            const seconds = timerState.timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update page title
+            document.title = `${timerDisplay.textContent} - Pormodoro`;
+        }
+
+        function updateProgress() {
+            const progress = (timerState.timeLeft / timerState.totalTime) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Theme Functions
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.dataset.theme = savedTheme;
+            updateThemeIcon();
+            
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.body.dataset.theme;
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            document.body.dataset.theme = newTheme;
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const icon = document.querySelector('.theme-icon');
+            icon.className = document.body.dataset.theme === 'light' ? 'fas fa-sun theme-icon' : 'fas fa-moon theme-icon';
+        }
+
+        // Settings Functions
+        function loadSettings() {
+            document.getElementById('pomodoroTime').addEventListener('change', (e) => {
+                settings.pomodoro = parseInt(e.target.value);
+                if (timerState.mode === 'pomodoro' && !timerState.isRunning) {
+                    switchMode('pomodoro', false);
+                }
+            });
+            
+            document.getElementById('shortBreakTime').addEventListener('change', (e) => {
+                settings.short = parseInt(e.target.value);
+                if (timerState.mode === 'short' && !timerState.isRunning) {
+                    switchMode('short', false);
+                }
+            });
+            
+            document.getElementById('longBreakTime').addEventListener('change', (e) => {
+                settings.long = parseInt(e.target.value);
+                if (timerState.mode === 'long' && !timerState.isRunning) {
+                    switchMode('long', false);
+                }
+            });
+            
+            document.getElementById('sessionsUntilLong').addEventListener('change', (e) => {
+                settings.sessionsUntilLong = parseInt(e.target.value);
+            });
+        }
+
+        // Particles Effect
+        function initializeParticles() {
+            for (let i = 0; i < 20; i++) {
+                createParticle();
+            }
+        }
+
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+            particles.appendChild(particle);
+        }
+
+        // Stats Functions
+        function initializeStats() {
+            const saved = localStorage.getItem('pomodoroStats');
+            if (saved) {
+                timerState.stats = JSON.parse(saved);
+                updateStats();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('todayPomodoros').textContent = timerState.stats.todayPomodoros;
+            document.getElementById('totalTime').textContent = Math.floor(timerState.stats.totalFocusTime / 60) + 'h';
+            document.getElementById('currentStreak').textContent = timerState.stats.currentStreak;
+            document.getElementById('completedTasks').textContent = timerState.stats.completedTasks;
+            
+            localStorage.setItem('pomodoroStats', JSON.stringify(timerState.stats));
+        }
+
+        // Tasks Functions
+        function initializeTasks() {
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            const taskInput = document.getElementById('taskInput');
+            
+            addTaskBtn.addEventListener('click', () => {
+                taskInput.classList.toggle('show');
+                if (taskInput.classList.contains('show')) {
+                    taskInput.focus();
+                }
+            });
+            
+            taskInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && e.target.value.trim()) {
+                    addTask(e.target.value.trim());
+                    e.target.value = '';
+                    e.target.classList.remove('show');
+                }
+            });
+            
+            loadTasks();
+        }
+
+        function addTask(text) {
+            const task = {
+                id: Date.now(),
+                text: text,
+                completed: false
+            };
+            
+            timerState.tasks.push(task);
+            renderTasks();
+            saveTasks();
+        }
+
+        function renderTasks() {
+            const tasksList = document.getElementById('tasksList');
+            tasksList.innerHTML = '';
+            
+            timerState.tasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                taskItem.innerHTML = `
+                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" data-id="${task.id}"></div>
+                    <div class="task-text ${task.completed ? 'completed' : ''}">${task.text}</div>
+                    <i class="fas fa-trash task-delete" data-id="${task.id}"></i>
+                `;
+                
+                tasksList.appendChild(taskItem);
+            });
+            
+            // Add event listeners
+            document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('click', (e) => {
+                    toggleTask(parseInt(e.target.dataset.id));
+                });
+            });
+            
+            document.querySelectorAll('.task-delete').forEach(deleteBtn => {
+                deleteBtn.addEventListener('click', (e) => {
+                    deleteTask(parseInt(e.target.dataset.id));
+                });
+            });
+        }
+
+        function toggleTask(id) {
+            const task = timerState.tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                if (task.completed) {
+                    timerState.stats.completedTasks++;
+                    updateStats();
+                }
+                renderTasks();
+                saveTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            timerState.tasks = timerState.tasks.filter(t => t.id !== id);
+            renderTasks();
+            saveTasks();
+        }
+
+        function loadTasks() {
+            const saved = localStorage.getItem('pomodoroTasks');
+            if (saved) {
+                timerState.tasks = JSON.parse(saved);
+                renderTasks();
+            }
+        }
+
+        function saveTasks() {
+            localStorage.setItem('pomodoroTasks', JSON.stringify(timerState.tasks));
+        }
+
+        // Quote Functions
+        function updateQuote() {
+            const quote = quotes[Math.floor(Math.random() * quotes.length)];
+            quoteText.textContent = `"${quote.text}"`;
+            quoteAuthor.textContent = `- ${quote.author}`;
+        }
+
+        // Notification Functions
+        function showNotification(message) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Pormodoro', {
+                    body: message,
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⏲️</text></svg>'
+                });
+            }
+        }
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // FAB Functions
+        document.getElementById('fab').addEventListener('click', () => {
+            createConfetti();
+        });
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.background = `hsl(${120 + Math.random() * 60}, 70%, 50%)`;
+                confetti.style.left = '50%';
+                confetti.style.top = '50%';
+                confetti.style.transform = 'translate(-50%, -50%)';
+                confetti.style.borderRadius = '50%';
+                confetti.style.pointerEvents = 'none';
+                confetti.style.zIndex = '10000';
+                document.body.appendChild(confetti);
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 5 + Math.random() * 5;
+                const lifetime = 1000 + Math.random() * 1000;
+                
+                let x = 0;
+                let y = 0;
+                let opacity = 1;
+                
+                const animate = () => {
+                    x += Math.cos(angle) * velocity;
+                    y += Math.sin(angle) * velocity + 2;
+                    opacity -= 1 / (lifetime / 16);
+                    
+                    confetti.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+                    confetti.style.opacity = opacity;
+                    
+                    if (opacity > 0) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        confetti.remove();
+                    }
+                };
+                
+                requestAnimationFrame(animate);
+            }
+        }
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                toggleTimer();
+            } else if (e.code === 'KeyR' && e.ctrlKey) {
+                e.preventDefault();
+                resetTimer();
+            } else if (e.code === 'KeyD' && e.ctrlKey) {
+                e.preventDefault();
+                toggleTheme();
+            } else if (e.code === 'KeyF' && e.ctrlKey) {
+                e.preventDefault();
+                enterFullscreen();
+            } else if (e.code === 'Escape') {
+                exitFullscreenMode();
+                closeSettingsPanel();
+            }
+        });
+    </script>
+</body>
+</html>
